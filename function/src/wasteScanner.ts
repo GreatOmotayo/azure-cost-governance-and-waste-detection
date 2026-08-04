@@ -15,6 +15,7 @@ interface WasteItem {
 
 // One Resource Graph query covering all three waste patterns.
 // Kept as a single query rather than three separate calls — see decision notes below.
+
 const WASTE_QUERY = `
   Resources
   | where

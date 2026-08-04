@@ -1,6 +1,6 @@
 resource "azurerm_storage_container" "cost_exports" {
   name                  = "cost-exports"
-  storage_account_name  = azurerm_storage_account.function_storage.name
+  storage_account_id    = azurerm_storage_account.function_storage.id
   container_access_type = "private"
 }
 
@@ -13,7 +13,7 @@ resource "azurerm_subscription_cost_management_export" "weekly_export" {
   recurrence_period_end_date   = "2027-08-03T00:00:00Z"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.cost_exports.resource_manager_id
+    container_id = azurerm_storage_container.cost_exports.id
     root_folder_path = "exports"
   }
 
