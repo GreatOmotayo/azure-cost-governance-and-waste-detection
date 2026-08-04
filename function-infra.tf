@@ -54,6 +54,8 @@ resource "azurerm_linux_function_app" "waste_scanner" {
   }
 
   app_settings = {
+    "AzureWebJobsFeatureFlags"      = "EnableWorkerIndexing"
+    "WEBSITE_NODE_DEFAULT_VERSION"  = "~22"
     "ALERT_EMAIL"              = var.alert_email
     "FUNCTIONS_WORKER_RUNTIME" = "node"
     "SUBSCRIPTION_ID"          = data.azurerm_subscription.current.subscription_id

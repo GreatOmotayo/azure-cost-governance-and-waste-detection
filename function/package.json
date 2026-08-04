@@ -1,7 +1,7 @@
 {
   "name": "cost-governance-functions",
   "version": "1.0.0",
-  "main": "dist/src/functions/*.js",
+  "main": "dist/src/*.js",
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",

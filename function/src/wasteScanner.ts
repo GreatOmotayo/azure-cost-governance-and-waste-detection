@@ -1,5 +1,3 @@
-// function/waste-scanner/src/index.ts
-
 import { app, InvocationContext, Timer } from "@azure/functions";
 import { DefaultAzureCredential } from "@azure/identity";
 import { ResourceGraphClient } from "@azure/arm-resourcegraph";
