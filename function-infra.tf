@@ -49,7 +49,7 @@ resource "azurerm_linux_function_app" "waste_scanner" {
 
   site_config {
     application_stack {
-      node_version = "20"
+      node_version = "22"
     }
   }
 
