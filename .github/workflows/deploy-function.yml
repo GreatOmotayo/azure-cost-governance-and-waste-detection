@@ -16,7 +16,7 @@ permissions:
 
 env:
     RESOURCE_GROUP: rg-cost-governance-waste-detection
-    WORKING_DIR: function/waste-scanner
+    WORKING_DIR: function/
 
 jobs:
     deploy:
