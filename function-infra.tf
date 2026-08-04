@@ -38,6 +38,17 @@ resource "azurerm_service_plan" "function_plan" {
   }
 }
 
+resource "azurerm_application_insights" "waste_scanner" {
+  name                = "appi-waste-scanner"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.main.name
+  application_type    = "Node.JS"
+  tags = {
+    owner       = var.owner_tag
+    costCenter  = var.cost_center_tag
+    environment = var.environment
+  }
+}
 
 resource "azurerm_linux_function_app" "waste_scanner" {
   name                       = "func-waste-scanner-${random_string.storage_suffix.result}"
@@ -55,6 +66,7 @@ resource "azurerm_linux_function_app" "waste_scanner" {
 
   app_settings = {
     "AzureWebJobsFeatureFlags"      = "EnableWorkerIndexing"
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.waste_scanner.connection_string
     "WEBSITE_NODE_DEFAULT_VERSION"  = "~22"
     "ALERT_EMAIL"              = var.alert_email
     "FUNCTIONS_WORKER_RUNTIME" = "node"
