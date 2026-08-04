@@ -6,7 +6,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { ResourceGraphClient } from "@azure/arm-resourcegraph";
 import ExcelJS from "exceljs";
 import { parse } from "csv-parse/sync";
-import { EmailClient } from "@azure/communication-email/dist/commonjs/emailClient";
+import { EmailClient } from "@azure/communication-email";
 
 const WASTE_QUERY = `
   Resources
@@ -37,7 +37,6 @@ export async function reportBuilder(myTimer: Timer, context: InvocationContext):
   await reportsContainer.createIfNotExists();
   await reportsContainer.getBlockBlobClient(reportName).uploadData(buffer);
 
-  await reportsContainer.getBlockBlobClient(reportName).uploadData(buffer);
   context.log(`Report saved: ${reportName}`);
 
   await sendReportReadyEmail(reportName, reportsContainer.getBlockBlobClient(reportName).url);
