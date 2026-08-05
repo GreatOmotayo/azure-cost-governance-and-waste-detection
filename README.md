@@ -32,7 +32,7 @@ Both functions run independently by design — see [DECISIONS.md](DECISIONS.md) 
 **Security posture throughout:**
 - Every Azure-to-Azure authentication uses **Managed Identity** — no API keys, no connection strings, no stored secrets
 - Every GitHub Actions → Azure authentication uses **OIDC federated credentials** — no service principal secrets in GitHub
-- RBAC is scoped narrowly per identity: the Function's runtime identity has subscription-wide `Reader` only; the CI/CD identity has `Contributor` but is gated behind a manual approval step before any `apply`
+- RBAC is scoped narrowly per identity, though "narrowly" took a few rounds to get right — the Function's runtime identity holds subscription-wide `Reader` (for the waste scan), `Storage Blob Data Contributor` (data-plane, distinct from managing the storage account itself), and `Communication and Email Service Owner` (data-plane, distinct from `Contributor`, which does *not* cover sending email despite looking like it should). The CI/CD identity has `Contributor` plus `Resource Policy Contributor` and `User Access Administrator` at subscription scope, gated behind a manual approval step before any `apply`. See TROUBLESHOOTING.md for why each of these turned out to need its own explicit grant.
 
 ## What's in this repo
 
@@ -51,6 +51,7 @@ Both functions run independently by design — see [DECISIONS.md](DECISIONS.md) 
 | `.github/workflows/deploy-function.yml` | CI/CD for Function code, triggered on changes to `function/` |
 | `.github/workflows/terraform.yml` | CI/CD for infrastructure — plan on PR, apply on merge (manual approval gated) |
 | `DECISIONS.md` | Running log of architectural decisions, alternatives considered, and rationale |
+| `TROUBLESHOOTING.md` | Chronological log of every real bug hit during the build — root cause, fix, and the lesson from each |
 | `screenshots/` | Evidence images referenced in the Screenshots section below |
 
 ## One-time setup (not managed by Terraform)
@@ -78,6 +79,17 @@ az storage container create --name tfstate --account-name sttfstateomotayo --aut
 
 **4. `terraform.tfvars`** (gitignored, never committed) — see `terraform.tfvars.example` for the required shape.
 
+**5. Email Communication Service domain linking** — provisioning the Email
+Communication Service, its Azure-managed domain, and the Communication
+Service resource are three separate steps, and none of them automatically
+link to each other. Confirm the domain is actually attached:
+```bash
+az communication show --resource-group <rg> --name <communication-service-name> --query "linkedDomains"
+```
+If empty, link it — see TROUBLESHOOTING.md (#10) for the full fix. This is
+easy to miss because email sends fail with what looks like an RBAC error
+even when permissions are entirely correct.
+
 ## Key engineering decisions
 
 Every non-trivial choice in this build — and several more than are listed below — is logged in [DECISIONS.md](DECISIONS.md) with the alternatives considered and the reasoning behind the final call, written as the decisions were made rather than reconstructed afterward. Highlights:
@@ -91,14 +103,23 @@ Every non-trivial choice in this build — and several more than are listed belo
 
 - `prevent_deletion_if_contains_resources = false` — set for lab convenience; would be `true` in a real environment
 - Excel report links in email require Azure Portal/CLI access rather than a direct clickable SAS-token link (documented trade-off, not an oversight)
-- `Contributor` role (rather than a narrower role) required for the Function to send email via Communication Services, since no narrower built-in role currently covers that data action
 - Node 22 is the final Node.js version supported on the Linux Consumption plan; a production build today would target the Flex Consumption plan instead
+- AzureRM provider is pinned to `~> 4.81` rather than the current 5.x line — an open upstream bug causes ID-parsing failures on `azurerm_storage_container` when migrating existing state to 5.x (see TROUBLESHOOTING.md, #7). Revisit once that's resolved upstream.
 
 ## Verifying the deployment
 
 Both functions run on weekly timers, which makes "did this actually work" slow to confirm naturally — waiting a full week just to see if a schedule fires correctly isn't a reasonable test loop.
 
 **Practice used during this build:** temporarily tighten the timer schedule immediately after deploying (e.g. `0 */10 * * * *` — every 10 minutes) to confirm the function fires and the expected email/report actually arrives, then revert to the real weekly cadence (`0 0 8 * * 1` for the scanner, `0 0 9 * * 2` for the report-builder) before considering the deployment complete. This is a deliberate verification step, not a leftover — don't ship with a tightened schedule.
+
+**If a deployed function ever shows zero entries** in the Portal or
+`az functionapp function list` despite a green CI run, don't trust Azure's
+own host status/logs to explain why — a genuine indexing failure can report
+`state: Running` with no errors while having zero functions loaded. Run
+`func start` locally (`cd function && npm run build && func start`) instead —
+it surfaces language-worker load errors immediately that never make it into
+Azure's own logging. This is exactly how the root cause in TROUBLESHOOTING.md
+(#8) was actually found, after every Azure-side check came back clean.
 
 ## Screenshots
 
