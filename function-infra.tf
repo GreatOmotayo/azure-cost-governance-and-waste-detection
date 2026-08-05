@@ -67,6 +67,7 @@ resource "azurerm_linux_function_app" "waste_scanner" {
   app_settings = {
     "AzureWebJobsFeatureFlags"      = "EnableWorkerIndexing"
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.waste_scanner.connection_string
+    "STORAGE_ACCOUNT_NAME" = azurerm_storage_account.function_storage.name
     "WEBSITE_NODE_DEFAULT_VERSION"  = "~22"
     "ALERT_EMAIL"              = var.alert_email
     "FUNCTIONS_WORKER_RUNTIME" = "node"
@@ -84,6 +85,11 @@ resource "azurerm_linux_function_app" "waste_scanner" {
     costCenter  = var.cost_center_tag
     environment = var.environment
   }
+}
+
+resource "azurerm_communication_service_email_domain_association" "waste_scanner" {
+  communication_service_id = azurerm_communication_service.waste_scanner_comms.id
+  email_service_domain_id  = azurerm_email_communication_service_domain.managed_domain.id
 }
 
 resource "azurerm_email_communication_service" "waste_scanner_email" {
@@ -126,6 +132,7 @@ resource "azurerm_role_assignment" "function_reader" {
 
 resource "azurerm_role_assignment" "function_email_sender" {
   scope                = azurerm_communication_service.waste_scanner_comms.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Communication and Email Service Owner"
   principal_id         = azurerm_linux_function_app.waste_scanner.identity[0].principal_id
+  skip_service_principal_aad_check  = true
 }
