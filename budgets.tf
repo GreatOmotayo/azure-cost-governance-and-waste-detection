@@ -59,4 +59,3 @@ resource "azurerm_consumption_budget_subscription" "monthly_budget" {
 
 }
 
-# Trigger pipeline

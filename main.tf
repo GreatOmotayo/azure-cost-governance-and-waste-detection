@@ -55,4 +55,3 @@ resource "azurerm_subscription_policy_assignment" "require_cost_tags" {
     effect = { value = var.tag_policy_effect }
   })
 }
-# Trigger build
