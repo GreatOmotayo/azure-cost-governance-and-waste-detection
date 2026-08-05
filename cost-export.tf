@@ -9,7 +9,7 @@ resource "azurerm_subscription_cost_management_export" "weekly_export" {
   subscription_id = data.azurerm_subscription.current.id
   recurrence_type = "Weekly"
 
-  recurrence_period_start_date = "2026-08-04T00:00:00Z" # first Monday after go-live
+  recurrence_period_start_date = "2026-08-05T00:00:00Z" # first Monday after go-live
   recurrence_period_end_date   = "2027-08-03T00:00:00Z"
 
   export_data_storage_location {
