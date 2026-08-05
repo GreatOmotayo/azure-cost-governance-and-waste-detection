@@ -148,6 +148,6 @@ async function sendReportReadyEmail(reportName: string, blobUrl: string): Promis
 }
 
 app.timer("reportBuilder", {
-  schedule: "0 0 12 * * 2", // Tuesday 9 AM — a day after the Monday cost export
+  schedule: "0 0 9 * * 2", // Tuesday 9 AM — a day after the Monday cost export
   handler: reportBuilder,
 });

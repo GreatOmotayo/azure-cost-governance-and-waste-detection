@@ -127,7 +127,7 @@ async function sendReportEmail(items: WasteItem[], totalSavings: number): Promis
 }
 
 app.timer("wasteScanner", {
-  schedule: "0 */10 * * * *", // Every 10 minutes for testing; change to "0 0 8 * * 1" for production (Monday 8 AM)
+  schedule: "0 0 8 * * 1", // Every Monday 8 AM
   handler: wasteScanner,
 });
 
