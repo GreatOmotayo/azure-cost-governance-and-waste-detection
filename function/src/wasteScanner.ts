@@ -59,7 +59,13 @@ export async function wasteScanner(myTimer: Timer, context: InvocationContext): 
 
   context.log(`Found ${wasteItems.length} waste item(s), estimated $${totalSavings.toFixed(2)}/month.`);
 
-  await sendReportEmail(wasteItems, totalSavings);
+  try {
+    await sendReportEmail(wasteItems, totalSavings);
+  } catch (err: any) {
+    context.error(`Email send failed: ${err.message}`);
+    if (err.stack) context.error(err.stack);
+    throw err;
+  }
 }
 
 function mapResourceType(azureType: string): WasteItem["type"] {
