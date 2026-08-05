@@ -128,17 +128,16 @@ Azure's own logging. This is exactly how the root cause in TROUBLESHOOTING.md
 **Tagging policy blocking an untagged resource**
 ![Policy deny error](screenshots/policy-deny.png)
 
-**Budget alert email**
-![Budget alert email](screenshots/budget-alert-email.png)
-
 **Weekly waste-scanner report email**
 ![Waste scanner email](screenshots/waste-scanner-email.png)
 
 **Excel cost report — Summary sheet**
-![Excel summary sheet](screenshots/excel-summary.png)
+![Excel summary sheet](screenshots/excel-summary-1.png)
+![Excel summary sheet](screenshots/excel-summary-2.png)
 
 **GitHub Actions — both pipelines passing**
-![GitHub Actions green](screenshots/github-actions-green.png)
+![GitHub Actions green](screenshots/github-actions-green-1.png)
+![GitHub Actions green](screenshots/github-actions-green-2.png)
 
 **Resource Graph Explorer — same waste items found**
 ![Resource Graph query results](screenshots/resource-graph-query.png)
