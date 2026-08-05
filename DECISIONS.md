@@ -121,6 +121,16 @@ narrowed artificially.
 to just that one resource) because no narrower built-in Azure role currently covers the
 send-email data action. Documented as a known trade-off, not an oversight.
 
+**Correction (post-deployment):** this was wrong. `Contributor` is a management-plane role
+and does not cover the data-plane action of actually sending an email via
+`DefaultAzureCredential` — confirmed the hard way when `reportBuilder` and `wasteScanner`
+both failed at the email step despite `Contributor` being correctly assigned. The narrower
+role does exist: `Communication and Email Service Owner`. The role assignment was updated
+to use it. Left the original "known exception" text above rather than deleting it, in
+keeping with the D002 correction pattern — the mistake was assuming no narrower role
+existed without actually checking, which is worth remembering. Full debugging trail in
+TROUBLESHOOTING.md (#10a).
+
 ---
 
 ## D009 — Two independent functions, not a shared data pipeline
@@ -198,3 +208,36 @@ A one-day buffer gives the export reliable time to complete first. This is unrel
 D009 (independent Resource Graph queries) — that decision is about data dependency between
 the two functions; this one is about timing dependency on a third, external process neither
 function controls directly.
+
+---
+
+## D015 — AzureRM provider pinned to the 4.x line, not 5.x
+**Decision:** `required_providers.azurerm.version` is pinned to `~> 4.81`, deliberately not
+upgraded to the 5.x line despite it being current.
+
+**Alternatives considered:** stay on the latest 5.x release and work around its issues as
+they surface; wait for a 5.x patch release before evaluating again.
+
+**Why this won:** upgrading the provider to get Node 22 support on
+`azurerm_linux_function_app` only required `>= 4.23.0` — nothing in this project needed a
+major version bump. An unconstrained `-upgrade` pulled 5.0.1 anyway, which turned out to
+have a genuine upstream bug: existing Terraform state created under 4.x fails to parse
+correctly for `azurerm_storage_container` on 5.x (confirmed via an open GitHub issue with
+an identical symptom). Staying on 4.x avoids the bug entirely and costs nothing functionally
+for this project. Revisit once the upstream issue is resolved and confirmed stable, not
+just once a new major version exists. Full chain of what happened in TROUBLESHOOTING.md (#7).
+
+---
+
+## D016 — Email Service and Communication Service require an explicit domain link
+**Decision:** provisioning `azurerm_email_communication_service_domain` and
+`azurerm_communication_service` is not sufficient on its own — an explicit
+`azurerm_communication_service_email_domain_association` resource is required to connect
+them, and is now included in Terraform rather than left as a manual step.
+
+**Why this needed calling out:** this isn't obvious from the resource names or from the
+Portal, and its absence produces a failure that looks identical to an RBAC problem (a
+generic auth/permission-shaped error at send time) even when every role assignment is
+correct. Discovered only by directly inspecting `linkedDomains` on the Communication
+Service resource, which was empty despite the domain itself showing `Succeeded`
+provisioning state. Full debugging trail in TROUBLESHOOTING.md (#10b).
