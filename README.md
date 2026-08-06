@@ -4,6 +4,8 @@ An Azure portfolio project that enforces cost accountability before spend happen
 
 Built with Terraform, Azure Policy, Azure Functions (Node.js 22), Azure Communication Services, and OIDC-based GitHub Actions CI/CD — with zero long-lived secrets anywhere in the pipeline.
 
+🎥 **[Watch the full walkthrough](https://www.loom.com/share/e5adb9ab04314811aa0b637e2aea0e9a)** — build, architecture, and a real bug hit and fixed along the way.
+
 ---
 
 ## Why this project
